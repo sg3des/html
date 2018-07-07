@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/sg3des/html/css"
 )
 
 func name(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +20,9 @@ type Object struct {
 
 	ID         string
 	Class      []string
+	Style      css.Style
 	Attributes []Attribute
-	Inner      string
-	Childs     []Object
+	Childs     []fmt.Stringer
 }
 
 func (o Object) String() string {
@@ -41,6 +43,12 @@ func (o Object) buffer(p []byte) *bytes.Buffer {
 		fmt.Fprintf(w, ` class='%s'`, strings.Join(o.Class, " "))
 	}
 
+	if len(o.Style.Properties) > 0 {
+		w.WriteString(` style='`)
+		o.Style.WriteProperties(w)
+		w.WriteByte('\'')
+	}
+
 	for _, attr := range o.Attributes {
 		fmt.Fprintf(w, ` %s='%s'`, attr.Key, attr.Val)
 	}
@@ -50,8 +58,6 @@ func (o Object) buffer(p []byte) *bytes.Buffer {
 	if o.noEndTag {
 		return w
 	}
-
-	w.WriteString(o.Inner)
 
 	for _, child := range o.Childs {
 		w.WriteString(child.String())
@@ -63,6 +69,11 @@ func (o Object) buffer(p []byte) *bytes.Buffer {
 
 func (o Object) WriteTo(w io.Writer) (n int64, err error) {
 	return o.buffer(nil).WriteTo(w)
+}
+
+func (o Object) OneTag() Object {
+	o.noEndTag = true
+	return o
 }
 
 func (o Object) SetID(id string) Object {
@@ -80,13 +91,18 @@ func (o Object) AddAttribute(key, val string) Object {
 	return o
 }
 
-func (o Object) SetInner(s string) Object {
-	o.Inner = s
+func (o Object) AddInnerText(s string) Object {
+	return o.AddChilds(Text(s))
+}
+
+func (o Object) SetStyle(style css.Style) Object {
+	o.Style = style
 	return o
 }
 
-func (o Object) AddChilds(child ...Object) Object {
+func (o Object) AddChilds(child ...fmt.Stringer) Object {
 	o.Childs = append(o.Childs, child...)
+
 	return o
 }
 
@@ -147,7 +163,7 @@ func (s Script) Src(src string) Script {
 }
 
 func (s Script) Code(code string) Script {
-	s.Inner = code
+	s.Object = s.AddInnerText(code)
 	return s
 }
 
@@ -182,6 +198,87 @@ func NewStyleLink(href string) Object {
 	}
 }
 
+func NewStyle(styles []css.Style) Object {
+	o := Object{
+		TagName: "style",
+	}
+
+	for _, s := range styles {
+		o = o.AddChilds(s)
+	}
+
+	return o
+}
+
+//
+// Inputs
+//
+
+type Input struct {
+	Object
+}
+
+func NewInput(typ, name string) Input {
+	return Input{Object{
+		TagName:    "input",
+		noEndTag:   true,
+		Attributes: []Attribute{Attribute{"type", typ}, Attribute{"name", name}},
+	}}
+}
+
+func (i Input) Placeholder(value string) Input {
+	i.Object = i.AddAttribute("placeholder", value)
+	return i
+}
+
+func (i Input) Value(value string) Input {
+	i.Object = i.AddAttribute("value", value)
+	return i
+}
+
+//
+// Table
+//
+
+type Table struct {
+	Object
+	rows [][]fmt.Stringer
+}
+
+func NewTable() Table {
+	return Table{Object: Object{
+		TagName: "table",
+	}}
+}
+
+func (t Table) AddRow(columns ...fmt.Stringer) Table {
+	t.rows = append(t.rows, columns)
+	return t
+}
+
+func (t Table) String() string {
+	o := t.Object
+	for _, row := range t.rows {
+		tr := NewObject("tr")
+		for _, col := range row {
+			tr = tr.AddChilds(NewObject("td").AddChilds(col))
+		}
+		o = o.AddChilds(tr)
+	}
+
+	return o.String()
+}
+
+//
+// Text
+//
+
+type Text string
+
+func (text Text) String() string {
+	return string(text)
+}
+
 //
 // HEADERS
 //
@@ -204,7 +301,7 @@ func (p Page) AddToHead(o ...Object) Page {
 	return p
 }
 
-func (p Page) AddToBody(o ...Object) Page {
+func (p Page) AddToBody(o ...fmt.Stringer) Page {
 	p.Body = p.Body.AddChilds(o...)
 	return p
 }
