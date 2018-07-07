@@ -97,6 +97,6 @@ func (c *Controller) handler(w http.ResponseWriter, r *http.Request) {
 Genereate CSS style:
 
 ```go
-style := NewStyle("#someid", ".some-class").AddProperty("color: red","position: relative")
+style := NewStyle("#someid", ".some-class").Color("red").Position("relative")
 style.String() // #someid, .some-class{color: red; position: relative;}
 ```
