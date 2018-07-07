@@ -1,6 +1,10 @@
 package html
 
-import "testing"
+import (
+	"bytes"
+	"testing"
+	"time"
+)
 
 func TestObjectDiv(t *testing.T) {
 	should := "<div></div>"
@@ -31,8 +35,7 @@ func TestDivWithScript(t *testing.T) {
 
 func TestChilds(t *testing.T) {
 	div := NewObject("div")
-	p := NewObject("p")
-	p.Inner = "some paragraph text"
+	p := NewObject("p").SetInner("some paragraph text")
 
 	s := div.AddChilds(p).String()
 	compare(t, s, "<div><p>some paragraph text</p></div>")
@@ -62,6 +65,18 @@ func TestLink(t *testing.T) {
 	t.Log(link)
 }
 
+// func TestPointerText(t *testing.T) {
+// 	text := "text"
+// 	div := NewObject("div").SetInnerPointer(&text)
+
+// 	s := div.String()
+// 	compare(t, s, "<div>text</div>")
+
+// 	text = "another text"
+// 	s = div.String()
+// 	compare(t, s, "<div>another text</div>")
+// }
+
 //
 // PAGE
 //
@@ -74,10 +89,69 @@ func TestPage(t *testing.T) {
 	s = page.AddToBody(NewObject("div")).String()
 	compare(t, s, `<!DOCTYPE html><html><head><title>page title</title></head><body><div></div></body></html>`)
 	t.Log(s)
+
+	var w bytes.Buffer
+	n, err := page.WriteTo(&w)
+	if err != nil {
+		t.Error(err)
+	}
+	if n == 0 {
+		t.Error("length should be more than 0")
+	}
+
+	t.Log(w.String())
 }
 
 func compare(t *testing.T, a, b string) {
 	if a != b {
 		t.Errorf("failed, not equal:\n\t%s\n\t%s", a, b)
+	}
+}
+
+//
+// Writer
+//
+
+func TestWriter(t *testing.T) {
+	var w bytes.Buffer
+	div := NewObject("div")
+	n, err := div.WriteTo(&w)
+	if err != nil {
+		t.Error(err)
+	}
+	if n == 0 {
+		t.Error("length should be more than 0")
+	}
+
+	t.Log(w.String())
+}
+
+// Benchmark
+
+func BenchmarkPage(b *testing.B) {
+	b.StopTimer()
+	page := NewPage("title")
+	page = page.AddToHead(
+		NewObject("style").SetInner("#title{color: red;}"),
+	)
+	page = page.AddToBody(
+		NewObject("h1").SetID("title").SetInner("example"),
+	)
+
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		page.AddToBody(
+			NewObject("div").SetInner("time: " + time.Now().String()),
+		)
+	}
+}
+
+func BenchmarkBuffer(b *testing.B) {
+	b.StopTimer()
+	div := NewObject("div").SetID("id").AddClass("class-name").SetInner("text")
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		div.buffer(nil)
 	}
 }
