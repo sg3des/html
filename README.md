@@ -50,7 +50,7 @@ Work how template engine for http hander:
 ```go
 func handler(w http.ResponseWriter, r *http.Request) {
 	page := html.NewPage("title")
-	div := html.NewObject("div").SetInner("Hello, World!")
+	div := html.NewObject("div").AddInnerText("Hello, World!")
 	page := page.AddToBody(div)
 
 	page.WriteTo(w)
@@ -83,8 +83,8 @@ func (c *Controller) InitPage() {
 
 func (c *Controller) handler(w http.ResponseWriter, r *http.Request) {
 	page := c.page.AddToBody(
-		html.NewObject("div").SetInner("time: "+time.Now().String()),
-		html.NewObject("div").SetInner("addr: "+r.RemoteAddr),
+		html.NewObject("div").AddInnerText("time: "+time.Now().String()),
+		html.NewObject("div").AddInnerText("addr: "+r.RemoteAddr),
 	)
 
 	page.WriteTo(w)
