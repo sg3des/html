@@ -1,6 +1,6 @@
 # HTML code generator
 
-This package just generate html code, it can be used as insertions in templates, or even how template engine.
+This package just generate html and css code, it can be used as insertions in templates, or even how template engine.
 
 ### Install
 
@@ -9,6 +9,10 @@ go get github.com/sg3des/html
 ```
 
 ### Usage
+
+#### HTML
+
+Examples:
 
 ```go
 div := html.NewObject("div").SetID("yourid").AddClass("classname")
@@ -29,7 +33,8 @@ linkstyle := html.NewStyleLink("/assets/style.css").String()
 //<link rel="stylesheet" type="text/css" href="/assets/style.css">
 ```
 
-Generate full page:
+
+Generate page:
 
 ```go
 page := html.NewPage("page title")
@@ -84,4 +89,14 @@ func (c *Controller) handler(w http.ResponseWriter, r *http.Request) {
 
 	page.WriteTo(w)
 } 
+```
+
+
+#### CSS
+
+Genereate CSS style:
+
+```go
+style := NewStyle("#someid", ".some-class").AddProperty("color: red","position: relative")
+style.String() // #someid, .some-class{color: red; position: relative;}
 ```
