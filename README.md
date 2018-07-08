@@ -70,9 +70,7 @@ func (c *Controller) InitPage() {
 	style := html.NewStyleLink("/assets/style.css")
 	script := html.NewJavaScript().Src("/assets/script.js")
 
-	main := html.NewObject("main")
-	main.AddToBody(html.NewObject("h1"))
-
+	main := html.NewObject("main").AddChilds(html.NewObject("h1"))
 	footer := html.NewObject("footer")
 
 	c.Page = html.NewPage("title")
