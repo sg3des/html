@@ -16,14 +16,15 @@ Examples:
 
 ```go
 div := html.NewObject("div").SetID("yourid").AddClass("classname")
-
-fmt.Println(div) // <div id="yourid" class="classname"></div>
+fmt.Println(div) 
+// <div id="yourid" class="classname"></div>
 
 a := html.NewA("http://somedomain.com/")
-fmt.Println(a) // <a href="http://somedomain.com/"></a>
+a.String() 
+// <a href="http://somedomain.com/"></a>
 
 div = div.AddChilds(a)
-fmt.Println(div) // <div id="yourid" class="classname"><a href="http://somedomain.com/"></a></div>
+// <div id="yourid" class="classname"><a href="http://somedomain.com/"></a></div>
 
 
 script := html.NewJavaScript().Src("/assets/script.js").String()
@@ -38,9 +39,9 @@ Generate page:
 
 ```go
 page := html.NewPage("page title")
-page.AddToHead(...)
-page.AddToBody(...)
-s := page.String()
+page = page.AddToHead(...)
+page = page.AddToBody(...)
+page.String() 
 //<!DOCTYPE html><html><head><title>page title</title>...</head><body>...</body></html>
 ```
 
@@ -62,7 +63,7 @@ It\`s can be before prepared:
 
 ```go
 type Controller struct {
-	Page *html.Page
+	Page html.Page
 }
 
 func (c *Controller) InitPage() {
@@ -75,8 +76,8 @@ func (c *Controller) InitPage() {
 	footer := html.NewObject("footer")
 
 	c.Page = html.NewPage("title")
-	c.Page.AddToBody(main, footer)
-	s.Page.AddToHead(script, style)
+	c.Page = c.Page.AddToBody(main, footer)
+	c.Page = c.Page.AddToHead(script, style)
 	// etc
 	// ...
 }
@@ -98,5 +99,6 @@ Genereate CSS style:
 
 ```go
 style := NewStyle("#someid", ".some-class").Color("red").Position("relative")
-style.String() // #someid, .some-class{color: red; position: relative;}
+style.String() 
+// #someid, .some-class{color: red; position: relative;}
 ```
