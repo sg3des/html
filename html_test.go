@@ -2,6 +2,7 @@ package html
 
 import (
 	"bytes"
+	"io"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ func TestAhref(t *testing.T) {
 }
 
 func TestDivWithScript(t *testing.T) {
-	div := NewObject("div").AddAttribute("onclick", `console.log(this, "onclick")`).String()
+	div := NewObject("div").SetAttribute("onclick", `console.log(this, "onclick")`).String()
 	compare(t, div, `<div onclick='console.log(this, "onclick")'></div>`)
 	t.Log(div)
 }
@@ -110,7 +111,7 @@ func compare(t *testing.T, a, b string) {
 // Writer
 //
 
-func TestWriter(t *testing.T) {
+func TestWriteTO(t *testing.T) {
 	var w bytes.Buffer
 	div := NewObject("div")
 	n, err := div.WriteTo(&w)
@@ -122,6 +123,29 @@ func TestWriter(t *testing.T) {
 	}
 
 	t.Log(w.String())
+}
+
+func TestIOReader(t *testing.T) {
+	var w bytes.Buffer
+	div := NewObject("div").SetAttribute("name", "some-name")
+	n, err := io.Copy(&w, div)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	if n == 0 {
+		t.Error("nothing writed")
+		t.FailNow()
+	}
+
+	s := w.String()
+	if s == "" {
+		t.Error("writer is empty")
+		t.FailNow()
+	}
+
+	t.Log(s)
 }
 
 // Benchmark

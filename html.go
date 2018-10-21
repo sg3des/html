@@ -71,6 +71,10 @@ func (o Object) WriteTo(w io.Writer) (n int64, err error) {
 	return o.buffer(nil).WriteTo(w)
 }
 
+func (o Object) Read(p []byte) (n int, err error) {
+	return o.buffer(nil).Read(p)
+}
+
 func (o Object) OneTag() Object {
 	o.noEndTag = true
 	return o
@@ -81,12 +85,23 @@ func (o Object) SetID(id string) Object {
 	return o
 }
 
+func (o Object) SetName(name string) Object {
+	return o.SetAttribute("name", name)
+}
+
 func (o Object) AddClass(class ...string) Object {
 	o.Class = append(o.Class, class...)
 	return o
 }
 
-func (o Object) AddAttribute(key, val string) Object {
+func (o Object) SetAttribute(key, val string) Object {
+	for i := range o.Attributes {
+		if o.Attributes[i].Key == key {
+			o.Attributes[i].Val = val
+			return o
+		}
+	}
+
 	o.Attributes = append(o.Attributes, Attribute{key, val})
 	return o
 }
@@ -133,12 +148,12 @@ func NewA(href string) A {
 }
 
 func (a A) Target(target string) A {
-	a.Object = a.AddAttribute("target", target)
+	a.Object = a.SetAttribute("target", target)
 	return a
 }
 
 func (a A) Download(filename string) A {
-	a.Object = a.AddAttribute("download", filename)
+	a.Object = a.SetAttribute("download", filename)
 	return a
 }
 
@@ -158,7 +173,7 @@ func NewScript(typ string) Script {
 }
 
 func (s Script) Src(src string) Script {
-	s.Object = s.AddAttribute("src", src)
+	s.Object = s.SetAttribute("src", src)
 	return s
 }
 
@@ -226,13 +241,13 @@ func NewInput(typ, name string) Input {
 	}}
 }
 
-func (i Input) Placeholder(value string) Input {
-	i.Object = i.AddAttribute("placeholder", value)
+func (i Input) SetPlaceholder(value string) Input {
+	i.Object = i.SetAttribute("placeholder", value)
 	return i
 }
 
-func (i Input) Value(value string) Input {
-	i.Object = i.AddAttribute("value", value)
+func (i Input) SetValue(value string) Input {
+	i.Object = i.SetAttribute("value", value)
 	return i
 }
 
