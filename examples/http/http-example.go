@@ -42,13 +42,13 @@ func NewController() *Controller {
 	floatright := css.NewStyle("").Left("200px")
 
 	main := html.NewObject("main").AddChilds(
-		html.NewObject("form").AddAttribute("method", http.MethodPost).AddChilds(
+		html.NewObject("form").SetAttribute("method", http.MethodPost).AddChilds(
 			html.NewObject("p").AddChilds(
 				html.NewObject("label").AddInnerText("name:"),
-				html.NewInput("text", "user").Placeholder("user name"),
+				html.NewInput("text", "user").SetPlaceholder("user name"),
 			),
 			html.NewObject("p").AddChilds(
-				html.NewInput("submit", "submit").Value("submit").SetStyle(floatright),
+				html.NewInput("submit", "submit").SetValue("submit").SetStyle(floatright),
 			),
 		),
 		html.NewObject("h2").AddInnerText("History"),
